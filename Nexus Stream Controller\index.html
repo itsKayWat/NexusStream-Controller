@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamlabs-like Widget</title>
+    <style>
+        /* Global Styles */
+        :root {
+            --primary-color: #0078d4;
+            --primary-hover: #005999;
+            --background-dark: #0e0e0e;
+            --background-light: #ffffff;
+            --sidebar-dark: #1e1e1e;
+            --sidebar-light: #f0f0f0;
+            --text-dark: #e0e0e0;
+            --text-light: #0e0e0e;
+            --border-dark: #444;
+            --border-light: #ccc;
+            --tooltip-bg: #555;
+            --tooltip-text: #fff;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --notification-duration: 3000ms;
+            --highlight-color: #ffeb3b;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-dark);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-dark);
+            padding: 20px;
+            box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar .nav-button {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            text-align: left;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+            font-size: 1rem;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar .nav-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-button.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .sidebar .nav-button .icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Toggle Button */
+        .toggle-sidebar {
+            margin-top: auto;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 10px;
+            transition: transform 0.3s;
+        }
+
+        .sidebar.collapsed .nav-button .icon {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .nav-button span {
+            display: none;
+        }
+
+        /* Main Container Styles */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Top Navbar Styles */
+        .navbar {
+            background-color: var(--sidebar-dark);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #ffffff;
+        }
+
+        .navbar .controls button {
+            margin-left: 15px;
+        }
+
+        /* Video Preview Styles */
+        .video-preview {
+            flex: 1;
+            background-color: #000;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--border-dark);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .video-preview canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
+        }
+
+        .video-preview p {
+            color: #fff;
+            font-size: 1.2rem;
+            position: absolute;
+        }
+
+        /* Content Section Styles */
+        .content {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .content h2 {
+            margin-top: 0;
+            font-size: 1.6rem;
+            color: #ffffff;
+        }
+
+        .content p {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Button Styles */
+        button {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s, color 0.3s;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        button:focus {
+            outline: 2px solid #ffffff;
+        }
+
+        /* Input and Select Styles */
+        input[type="checkbox"],
+        select,
+        input[type="text"],
+        input[type="password"] {
+            margin-top: 10px;
+            padding: 7px;
+            border-radius: 4px;
+            border: 1px solid var(--border-dark);
+            background-color: #2e2e2e;
+            color: var(--text-dark);
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-size: 1rem;
+            color: #ffffff;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 0;
+                height: 100%;
+                z-index: 1000;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .toggle-sidebar {
+                display: block;
+            }
+
+            .navbar {
+                padding: 15px;
+            }
+
+            .navbar .menu-toggle {
+                display: block;
+                background: none;
+                border: none;
+                color: #ffffff;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+        }
+
+        /* Tooltip Styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: auto;
+            background-color: var(--tooltip-bg);
+            color: var(--tooltip-text);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Overlay Styles */
+        .overlay-management {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .overlay-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+            transition: background 0.2s, border-color 0.3s;
+            background-color: #2e2e2e;
+        }
+
+        .overlay-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #555;
+        }
+
+        /* Audio Visualization Styles */
+        .audio-visualization {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            margin-top: 15px;
+        }
+
+        .audio-bar {
+            background: lightgray;
+            width: 22px;
+            height: 45px;
+            border-radius: 5px;
+            transition: height 0.2s ease, background-color 0.3s;
+        }
+
+        .audio-bar.active {
+            background: var(--primary-color);
+            height: 65px;
+        }
+
+        /* New Styles for Social Platforms and Scenes */
+        /* Social Platforms Section */
+        .social-platforms .platform {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+            background-color: #2e2e2e;
+            transition: background 0.2s, border-color 0.3s;
+        }
+
+        .social-platforms .platform:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #555;
+        }
+
+        .social-platforms .platform .details {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .social-platforms .platform input {
+            margin-top: 5px;
+        }
+
+        /* Scenes Management */
+        .scenes-management {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .scene-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+            transition: background 0.2s, border-color 0.3s;
+            background-color: #2e2e2e;
+        }
+
+        .scene-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #555;
+        }
+
+        .scene-item .scene-name {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .scene-item button {
+            margin-left: 10px;
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s, visibility 0.5s;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .notification.success {
+            border-left: 5px solid var(--success-color);
+        }
+
+        .notification.error {
+            border-left: 5px solid var(--error-color);
+        }
+
+        /* Stream Keys Section Styles */
+        .stream-key-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .platform-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .platform-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .stream-key-input {
+            width: 100%;
+            padding: 12px;
+            background: #2e2e2e;
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            color: var(--text-dark);
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .save-button {
+            background-color: #0078d4;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .test-button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .save-button:hover {
+            background-color: #005999;
+        }
+
+        .test-button:hover {
+            background-color: #218838;
+        }
+
+        /* Platform-specific styles */
+        .twitch {
+            background: rgba(145, 70, 255, 0.1);
+        }
+
+        .youtube {
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .tiktok {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Platform Cards Styles */
+        .platform-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .stream-key-group {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .platform-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .platform-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .stream-key-input {
+            width: 100%;
+            padding: 12px;
+            background: #2e2e2e;
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            color: var(--text-dark);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .save-btn {
+            background-color: #0078d4;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .test-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .save-btn:hover {
+            background-color: #005999;
+        }
+
+        .test-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Platform-specific styles */
+        .twitch {
+            background: rgba(145, 70, 255, 0.1);
+        }
+
+        .youtube {
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .tiktok {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .obs {
+            background: rgba(0, 0, 255, 0.1);
+        }
+
+        .streamlabs {
+            background: rgba(0, 255, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar" id="sidebar">
+        <button class="nav-button active" onclick="showSection('dashboard')" aria-label="Go to Dashboard">
+            <span class="icon"></span>
+            <span>Dashboard</span>
+        </button>
+        <button class="nav-button" onclick="showSection('audio')" aria-label="Go to Audio Settings">
+            <span class="icon">🎤</span>
+            <span>Audio Settings</span>
+        </button>
+        <button class="nav-button" onclick="showSection('video')" aria-label="Go to Video Settings">
+            <span class="icon">📹</span>
+            <span>Video Settings</span>
+        </button>
+        <button class="nav-button" onclick="showSection('social')" aria-label="Go to Social Platforms">
+            <span class="icon">🌐</span>
+            <span>Social Platforms</span>
+        </button>
+        <button class="nav-button" onclick="showSection('scenes')" aria-label="Go to Scenes Management">
+            <span class="icon"></span>
+            <span>Scenes</span>
+        </button>
+        <button class="toggle-sidebar" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+            <span class="icon">🔀</span>
+        </button>
+    </div>
+
+    <div class="main-container">
+        <div class="navbar">
+            <h1>Streamlabs-like Widget</h1>
+            <div class="controls">
+                <button onclick="startStream()" aria-label="Start Stream">Start Stream</button>
+                <button onclick="stopStream()" aria-label="Stop Stream">Stop Stream</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <p>Welcome to your streaming dashboard. Here you can manage your streams, settings, and more.</p>
+                <p>Refer to the README for detailed instructions on setting up and using the widget.</p>
+            </div>
+
+            <div id="audio" class="section">
+                <h2>Audio Settings</h2>
+                <p>Configure your audio input and output settings.</p>
+                <label for="audioInput">Enable Audio Input</label>
+                <input type="checkbox" id="audioInput" onchange="toggleAudioInput(this)">
+                <div class="audio-visualization">
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                    <div class="audio-bar"></div>
+                </div>
+            </div>
+
+            <div id="video" class="section">
+                <h2>Video Settings</h2>
+                <p>Adjust your video quality and resolution.</p>
+                <label for="videoQuality">Select Video Quality</label>
+                <select id="videoQuality" onchange="changeVideoQuality(this)">
+                    <option value="1080p">1080p</option>
+                    <option value="720p">720p</option>
+                    <option value="480p">480p</option>
+                </select>
+                <div class="video-preview">
+                    <canvas></canvas>
+                    <p>Video Preview</p>
+                </div>
+            </div>
+
+            <div id="social" class="section">
+                <h2>Social Platforms</h2>
+                <p>Connect your streaming platforms and manage stream keys.</p>
+                <div class="social-platforms">
+                    <div class="platform">
+                        <span class="icon">🎥</span>
+                        <div class="details">
+                            <label for="tiktokKey">TikTok Stream Key</label>
+                            <input type="password" id="tiktokKey" placeholder="Enter TikTok Stream Key">
+                            <button onclick="saveStreamKey('tiktok')" aria-label="Save TikTok Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🎮</span>
+                        <div class="details">
+                            <label for="facebookGamingKey">Facebook Gaming Stream Key</label>
+                            <input type="password" id="facebookGamingKey" placeholder="Enter Facebook Gaming Stream Key">
+                            <button onclick="saveStreamKey('facebookGaming')" aria-label="Save Facebook Gaming Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🐦</span>
+                        <div class="details">
+                            <label for="twitterKey">Twitter Stream Key</label>
+                            <input type="password" id="twitterKey" placeholder="Enter Twitter Stream Key">
+                            <button onclick="saveStreamKey('twitter')" aria-label="Save Twitter Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">📺</span>
+                        <div class="details">
+                            <label for="glimeshKey">Glimesh Stream Key</label>
+                            <input type="password" id="glimeshKey" placeholder="Enter Glimesh Stream Key">
+                            <button onclick="saveStreamKey('glimesh')" aria-label="Save Glimesh Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🎯</span>
+                        <div class="details">
+                            <label for="kickKey">Kick Stream Key</label>
+                            <input type="password" id="kickKey" placeholder="Enter Kick Stream Key">
+                            <button onclick="saveStreamKey('kick')" aria-label="Save Kick Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🧵</span>
+                        <div class="details">
+                            <label for="threadsKey">Threads Stream Key</label>
+                            <input type="password" id="threadsKey" placeholder="Enter Threads Stream Key">
+                            <button onclick="saveStreamKey('threads')" aria-label="Save Threads Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">👻</span>
+                        <div class="details">
+                            <label for="snapchatKey">Snapchat Stream Key</label>
+                            <input type="password" id="snapchatKey" placeholder="Enter Snapchat Stream Key">
+                            <button onclick="saveStreamKey('snapchat')" aria-label="Save Snapchat Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🔄</span>
+                        <div class="details">
+                            <label for="restreamKey">Restream Stream Key</label>
+                            <input type="password" id="restreamKey" placeholder="Enter Restream Stream Key">
+                            <button onclick="saveStreamKey('restream')" aria-label="Save Restream Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">📡</span>
+                        <div class="details">
+                            <label for="streamlabsObsKey">Streamlabs OBS Stream Key</label>
+                            <input type="password" id="streamlabsObsKey" placeholder="Enter Streamlabs OBS Stream Key">
+                            <button onclick="saveStreamKey('streamlabsObs')" aria-label="Save Streamlabs OBS Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🎥</span>
+                        <div class="details">
+                            <label for="obsStudioKey">OBS Studio Stream Key</label>
+                            <input type="password" id="obsStudioKey" placeholder="Enter OBS Studio Stream Key">
+                            <button onclick="saveStreamKey('obsStudio')" aria-label="Save OBS Studio Stream Key">Save</button>
+                        </div>
+                    </div>
+                    <div class="platform">
+                        <span class="icon">🔧</span>
+                        <div class="details">
+                            <label for="otherKey">Other Stream Key</label>
+                            <input type="password" id="otherKey" placeholder="Enter Other Stream Key">
+                            <button onclick="saveStreamKey('other')" aria-label="Save Other Stream Key">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="scenes" class="section">
+                <h2>Scenes Management</h2>
+                <p>Manage your scenes and sources for streaming.</p>
+                <div class="scenes-management">
+                    <button onclick="addScene()" aria-label="Add New Scene">Add Scene</button>
+                </div>
+            </div>
+
+            <div id="settings" class="section">
+                <h2>Settings</h2>
+                <p>Adjust your application settings here.</p>
+                <label for="themeSelect">Select Theme</label>
+                <select id="themeSelect" aria-label="Choose Theme" onchange="toggleTheme(this)">
+                    <option value="dark" selected>Dark</option>
+                    <option value="light">Light</option>
+                </select>
+                <button onclick="toggleTheme()" aria-label="Toggle Theme">Toggle Dark/Light Mode</button>
+            </div>
+
+            <!-- Stream Key Management Section -->
+            <div class="stream-key-container">
+                <div class="platform-label">
+                    <span class="platform-icon">🎥</span>
+                    OBS Studio Stream Key
+                </div>
+                <input type="password" 
+                       class="stream-key-input" 
+                       placeholder="Enter OBS Studio Stream Key">
+                <button class="save-button">Save</button>
+            </div>
+
+            <!-- Other Stream Key -->
+            <div class="stream-key-container">
+                <div class="platform-label">
+                    <span class="platform-icon">✏️</span>
+                    Other Stream Key
+                </div>
+                <input type="password" 
+                       class="stream-key-input" 
+                       placeholder="Enter Other Stream Key">
+                <button class="save-button">Save</button>
+            </div>
+
+            <h2>Stream Keys</h2>
+
+            <!-- Social Platforms Section -->
+            <div class="content" id="socialPlatforms" style="display: none;">
+                <h2>Social Platforms</h2>
+                
+                <!-- Platform Cards -->
+                <div class="platform-container">
+                    <!-- Twitch -->
+                    <div class="stream-key-group">
+                        <div class="platform-label">
+                            <span class="platform-icon">🟣</span>
+                            Twitch
+                        </div>
+                        <input type="password" 
+                               class="stream-key-input" 
+                               placeholder="Enter Twitch Stream Key">
+                        <div class="button-group">
+                            <button class="save-btn">Save</button>
+                            <button class="test-btn">Test</button>
+                        </div>
+                    </div>
+
+                    <!-- YouTube -->
+                    <div class="stream-key-group">
+                        <div class="platform-label">
+                            <span class="platform-icon">🔴</span>
+                            YouTube
+                        </div>
+                        <input type="password" 
+                               class="stream-key-input" 
+                               placeholder="Enter YouTube Stream Key">
+                        <div class="button-group">
+                            <button class="save-btn">Save</button>
+                            <button class="test-btn">Test</button>
+                        </div>
+                    </div>
+
+                    <!-- TikTok -->
+                    <div class="stream-key-group">
+                        <div class="platform-label">
+                            <span class="platform-icon">📱</span>
+                            TikTok
+                        </div>
+                        <input type="password" 
+                               class="stream-key-input" 
+                               placeholder="Enter TikTok Stream Key">
+                        <div class="button-group">
+                            <button class="save-btn">Save</button>
+                            <button class="test-btn">Test</button>
+                        </div>
+                    </div>
+
+                    <!-- Facebook Gaming -->
+                    <div class="stream-key-group">
+                        <div class="platform-label">
+                            <span class="platform-icon">📘</span>
+                            Facebook Gaming
+                        </div>
+                        <input type="password" 
+                               class="stream-key-input" 
+                               placeholder="Enter Facebook Gaming Stream Key">
+                        <div class="button-group">
+                            <button class="save-btn">Save</button>
+                            <button class="test-btn">Test</button>
+                        </div>
+                    </div>
+
+                    <!-- Additional platforms following the same pattern -->
+                </div>
+            </div>
+
+            <!-- OBS and Streamlabs OBS Section -->
+            <div class="content" id="obsPlatforms" style="display: none;">
+                <h2>OBS Platforms</h2>
+                
+                <!-- OBS Studio -->
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon obs">🖥️</div>
+                        <h3>OBS Studio</h3>
+                    </div>
+                    <div class="platform-content">
+                        <input type="password" 
+                               id="obsStudioKey" 
+                               class="stream-key-input" 
+                               placeholder="Enter OBS Studio Stream Key">
+                        <div class="button-group">
+                            <button class="save-btn" onclick="saveStreamKey('obsStudio')">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Streamlabs OBS -->
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon streamlabs">📺</div>
+                        <h3>Streamlabs OBS</h3>
+                    </div>
+                    <div class="platform-content">
+                        <input type="password" 
+                               id="streamlabsObsKey" 
+                               class="stream-key-input" 
+                               placeholder="Enter Streamlabs OBS Stream Key">
+                        <div class="button-group">
+                            <button class="save-btn" onclick="saveStreamKey('streamlabsObs')">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Toggle Sidebar for Responsive Design
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        function showSection(section) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(s => {
+                s.classList.remove('active');
+                s.style.display = 'none';
+            });
+
+            // Remove active class from all sidebar buttons
+            const buttons = document.querySelectorAll('.nav-button');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show the selected section
+            const activeSection = document.getElementById(section);
+            activeSection.classList.add('active');
+            activeSection.style.display = 'block';
+            document.querySelector(`.nav-button[onclick="showSection('${section}')"]`).classList.add('active');
+        }
+
+        function startStream() {
+            alert('Stream started!');
+            // Placeholder for starting the stream logic
+            // Implement stream initiation logic here
+        }
+
+        function stopStream() {
+            alert('Stream stopped!');
+            // Placeholder for stopping the stream logic
+            // Implement stream termination logic here
+        }
+
+        function saveSettings() {
+            alert('Settings saved!');
+            // Placeholder for saving settings
+            // Implement settings persistence here
+        }
+
+        function addOverlay() {
+            const overlayName = prompt('Enter the name of the new overlay:', `Overlay ${document.querySelectorAll('.overlay-item').length + 1}`);
+            if (overlayName) {
+                const overlayContainer = document.querySelector('.overlay-management');
+                const newOverlay = document.createElement('div');
+                newOverlay.classList.add('overlay-item');
+                newOverlay.innerHTML = `
+                    <span>${overlayName}</span>
+                    <button onclick="editOverlay('${overlayName}')" aria-label="Edit ${overlayName}">Edit</button>
+                `;
+                overlayContainer.insertBefore(newOverlay, overlayContainer.lastElementChild);
+                showNotification('Overlay added successfully!', 'success');
+            } else {
+                showNotification('Overlay name cannot be empty.', 'error');
+            }
+        }
+
+        function editOverlay(overlayName) {
+            const newName = prompt(`Editing ${overlayName}. Enter new name:`, overlayName);
+            if (newName && newName.trim() !== '') {
+                const overlayItems = document.querySelectorAll('.overlay-item span');
+                overlayItems.forEach(item => {
+                    if (item.textContent === overlayName) {
+                        item.textContent = newName;
+                        item.nextElementSibling.setAttribute('aria-label', `Edit ${newName}`);
+                        item.nextElementSibling.onclick = () => editOverlay(newName);
+                        showNotification('Overlay renamed successfully!', 'success');
+                    }
+                });
+            } else {
+                showNotification('Overlay name cannot be empty.', 'error');
+            }
+        }
+
+        function toggleTheme(selectElement) {
+            const theme = selectElement.value;
+            const body = document.body;
+            const sidebar = document.querySelector('.sidebar');
+            const navbar = document.querySelector('.navbar');
+            const content = document.querySelector('.content');
+            const buttons = document.querySelectorAll('button');
+            const inputs = document.querySelectorAll('input, select');
+            const audioBars = document.querySelectorAll('.audio-bar');
+            const tooltipTexts = document.querySelectorAll('.tooltiptext');
+
+            if (theme === 'light') {
+                document.documentElement.style.setProperty('--background-dark', '#ffffff');
+                document.documentElement.style.setProperty('--text-dark', '#0e0e0e');
+                document.documentElement.style.setProperty('--sidebar-dark', '#f0f0f0');
+                document.documentElement.style.setProperty('--text-light', '#0e0e0e');
+                document.documentElement.style.setProperty('--border-dark', '#ccc');
+                document.documentElement.style.setProperty('--tooltip-bg', '#333');
+                document.documentElement.style.setProperty('--tooltip-text', '#fff');
+            } else {
+                document.documentElement.style.setProperty('--background-dark', '#0e0e0e');
+                document.documentElement.style.setProperty('--text-dark', '#e0e0e0');
+                document.documentElement.style.setProperty('--sidebar-dark', '#1e1e1e');
+                document.documentElement.style.setProperty('--text-light', '#e0e0e0');
+                document.documentElement.style.setProperty('--border-dark', '#444');
+                document.documentElement.style.setProperty('--tooltip-bg', '#555');
+                document.documentElement.style.setProperty('--tooltip-text', '#fff');
+            }
+        }
+
+        function toggleAudioInput(checkbox) {
+            if (checkbox.checked) {
+                alert('Audio input enabled.');
+                // Implement enabling audio input
+                startAudioVisualization();
+            } else {
+                alert('Audio input disabled.');
+                // Implement disabling audio input
+                stopAudioVisualization();
+            }
+        }
+
+        function changeVideoQuality(selectElement) {
+            const quality = selectElement.value;
+            alert(`Video quality set to ${quality}`);
+            // Implement video quality change logic
+        }
+
+        function startAudioVisualization() {
+            const bars = document.querySelectorAll('.audio-bar');
+            bars.forEach(bar => {
+                bar.classList.add('active');
+                // Simulate audio levels
+                const randomHeight = Math.floor(Math.random() * 50) + 30;
+                bar.style.height = `${randomHeight}px`;
+            });
+        }
+
+        function stopAudioVisualization() {
+            const bars = document.querySelectorAll('.audio-bar');
+            bars.forEach(bar => {
+                bar.classList.remove('active');
+                bar.style.height = '45px';
+            });
+        }
+
+        // New Functions for Social Platforms
+
+        function saveStreamKey(platform) {
+            const keyInput = document.getElementById(`${platform}Key`);
+            const streamKey = keyInput.value.trim();
+
+            if (streamKey === '') {
+                showNotification('Stream key cannot be empty.', 'error');
+                return;
+            }
+
+            // Placeholder for saving stream key securely
+            // Implement secure storage and API calls here
+
+            // For demonstration, we'll just show a success notification
+            showNotification(`${capitalize(platform)} stream key saved successfully!`, 'success');
+
+            // Clear input after saving
+            keyInput.value = '';
+        }
+
+        // Scenes Management Functions
+
+        function addScene() {
+            const sceneName = prompt('Enter the name of the new scene:', `Scene ${document.querySelectorAll('.scene-item').length + 1}`);
+            if (sceneName && sceneName.trim() !== '') {
+                const scenesContainer = document.querySelector('.scenes-management');
+                const newScene = document.createElement('div');
+                newScene.classList.add('scene-item');
+                newScene.innerHTML = `
+                    <span class="icon">🎬</span>
+                    <span class="scene-name">${sceneName}</span>
+                    <div>
+                        <button onclick="addSource('${sceneName}')" aria-label="Add Source to ${sceneName}">Add Source</button>
+                        <button onclick="editScene('${sceneName}')" aria-label="Edit ${sceneName}">Edit</button>
+                        <button onclick="deleteScene('${sceneName}')" aria-label="Delete ${sceneName}">Delete</button>
+                    </div>
+                `;
+                scenesContainer.insertBefore(newScene, scenesContainer.lastElementChild);
+                showNotification('Scene added successfully!', 'success');
+            } else {
+                showNotification('Scene name cannot be empty.', 'error');
+            }
+        }
+
+        function editScene(sceneName) {
+            const newName = prompt(`Editing ${sceneName}. Enter new name:`, sceneName);
+            if (newName && newName.trim() !== '') {
+                const sceneItems = document.querySelectorAll('.scene-item .scene-name');
+                sceneItems.forEach(item => {
+                    if (item.textContent === sceneName) {
+                        item.textContent = newName;
+                        // Update buttons' aria-labels
+                        const parent = item.parentElement;
+                        const buttons = parent.querySelectorAll('button');
+                        buttons.forEach(btn => {
+                            if (btn.textContent === 'Add Source') {
+                                btn.setAttribute('aria-label', `Add Source to ${newName}`);
+                                btn.onclick = () => addSource(newName);
+                            } else if (btn.textContent === 'Edit') {
+                                btn.setAttribute('aria-label', `Edit ${newName}`);
+                                btn.onclick = () => editScene(newName);
+                            } else if (btn.textContent === 'Delete') {
+                                btn.setAttribute('aria-label', `Delete ${newName}`);
+                                btn.onclick = () => deleteScene(newName);
+                            }
+                        });
+                        showNotification('Scene renamed successfully!', 'success');
+                    }
+                });
+            } else {
+                showNotification('Scene name cannot be empty.', 'error');
+            }
+        }
+
+        function deleteScene(sceneName) {
+            if (confirm(`Are you sure you want to delete the scene "${sceneName}"? This action cannot be undone.`)) {
+                const sceneItems = document.querySelectorAll('.scene-item');
+                sceneItems.forEach(item => {
+                    const nameSpan = item.querySelector('.scene-name');
+                    if (nameSpan.textContent === sceneName) {
+                        item.remove();
+                        showNotification('Scene deleted successfully!', 'success');
+                    }
+                });
+            }
+        }
+
+        function addSource(sceneName) {
+            const sourceName = prompt(`Enter the name of the new source for "${sceneName}":`, `Source ${document.querySelectorAll('.scene-item').length + 1}`);
+            if (sourceName && sourceName.trim() !== '') {
+                // Placeholder for adding a source to the scene
+                // Implement source addition logic here
+                showNotification(`Source "${sourceName}" added to "${sceneName}".`, 'success');
+            } else {
+                showNotification('Source name cannot be empty.', 'error');
+            }
+        }
+
+        // Utility Functions
+
+        function capitalize(word) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, parseInt(getComputedStyle(document.documentElement).getPropertyValue('--notification-duration')));
+        }
+
+        function testConnection(platform) {
+            const keyInput = document.getElementById(`${platform}Key`);
+            const streamKey = keyInput.value.trim();
+            
+            if (!streamKey) {
+                showNotification(`Please enter a ${platform} stream key first.`, 'error');
+                return;
+            }
+
+            // Simulate testing connection
+            showNotification(`Testing ${platform} connection...`, 'info');
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // In a real implementation, this would make an API call to test the connection
+                const success = Math.random() > 0.2; // 80% success rate for demonstration
+                
+                if (success) {
+                    showNotification(`Successfully connected to ${platform}!`, 'success');
+                } else {
+                    showNotification(`Failed to connect to ${platform}. Please check your stream key.`, 'error');
+                }
+            }, 1500);
+        }
+
+        // Initialize default view
+        document.addEventListener('DOMContentLoaded', () => {
+            showSection('dashboard');
+            startAudioVisualization();
+        });
+    </script>
+</body>
+
+</html>
