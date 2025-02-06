@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusStream-Controller Documentation</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --section-bg: #f4f4f4;
+            --highlight-bg: #fff3cd;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #ffffff;
+                --section-bg: #2d2d2d;
+                --highlight-bg: #3d3d1d;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        h1, h2 {
+            color: var(--text-color);
+        }
+
+        code {
+            background: var(--section-bg);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .highlight {
+            background: var(--highlight-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .developer-section {
+            margin-top: 50px;
+            padding: 20px;
+            background: var(--section-bg);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .coffee-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .coffee-btn {
+            background: #0077ee;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .coffee-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>NexusStream-Controller</h1>
+    
+    <h2>Overview</h2>
+    <p>NexusStream-Controller is a lightweight alternative to Streamlabs, designed for streamers who need a simple, efficient way to manage multiple streaming platforms simultaneously.</p>
+
+    <h2>Purpose</h2>
+    <p>Created to provide streamers with a free, open-source solution for managing stream keys, audio/video settings, and scenes across multiple platforms without the resource overhead of larger streaming applications.</p>
+
+    <h2>Key Features</h2>
+    <ul>
+        <li>Multi-platform stream key management</li>
+        <li>Centralized audio and video controls</li>
+        <li>Scene management system</li>
+        <li>Platform-specific settings</li>
+        <li>Resource-efficient design</li>
+    </ul>
+
+    <h2>Installation</h2>
+    <ol>
+        <li>Clone the repository: <code>git clone https://github.com/yourusername/NexusStream-Controller.git</code></li>
+        <li>Navigate to the project directory: <code>cd NexusStream-Controller</code></li>
+        <li>Run the requirements installer: <code>python requirements.py</code></li>
+        <li>Launch the application: <code>python main.py</code></li>
+    </ol>
+
+    <h2>Requirements</h2>
+    <ul>
+        <li>Python 3.8 or higher</li>
+        <li>Modern web browser</li>
+        <li>Internet connection</li>
+    </ul>
+
+    <h2>Use Case Example</h2>
+    <div class="highlight">
+        <p>Sarah is a content creator who streams to multiple platforms simultaneously. She needs to manage different stream keys for Twitch, YouTube, and TikTok, while also controlling her audio/video settings and scenes. NexusStream-Controller allows her to:</p>
+        <ul>
+            <li>Store and manage all stream keys securely in one place</li>
+            <li>Switch between scenes seamlessly</li>
+            <li>Adjust audio/video settings on the fly</li>
+            <li>Save different configurations for different types of streams</li>
+        </ul>
+    </div>
+
+    <!-- Developer Signature Section -->
+    <div class="developer-section">
+        <h2>👋 Hey Content Creators!</h2>
+        <p>I'm KayWat, the developer behind NexusStream-Controller. If you find this tool helpful, consider buying me a coffee! ❤️</p>
+        <div class="coffee-buttons">
+            <a href="https://www.paypal.com/donate/?hosted_button_id=J3ABMPG6MQF3L&custom=1coffee" class="coffee-btn" target="_blank">One Coffee ($6)</a>
+            <a href="https://www.paypal.com/donate/?hosted_button_id=J3ABMPG6MQF3L&custom=2coffees" class="coffee-btn" target="_blank">Two Coffees ($12)</a>
+            <a href="https://www.paypal.com/donate/?hosted_button_id=J3ABMPG6MQF3L&custom=3coffees" class="coffee-btn" target="_blank">Three Coffees ($24)</a>
+        </div>
+    </div>
+</body>
+</html>
