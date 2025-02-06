@@ -1,0 +1,44 @@
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.top-bar {
+    padding: 10px;
+    background: #2b2b2b;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 250px;
+    grid-template-rows: 1fr 250px;
+    gap: 10px;
+    padding: 10px;
+    flex-grow: 1;
+}
+
+.preview-window,
+.program-window {
+    background: #1a1a1a;
+    border: 1px solid #333;
+}
+
+.dock {
+    background: #2b2b2b;
+    border: 1px solid #333;
+    padding: 10px;
+}
+
+button {
+    background: #4a4a4a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #5a5a5a;
+} 
