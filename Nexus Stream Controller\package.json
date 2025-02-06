@@ -1,0 +1,20 @@
+{
+  "name": "streamlabs-alternative",
+  "version": "1.0.0",
+  "description": "Custom streaming application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "node-media-server": "^2.6.2",
+    "obs-websocket-js": "^5.0.3"
+  }
+} 
