@@ -1,0 +1,29 @@
+NexusStream-Controller/
+│
+├── index.html              # Main application interface
+├── main.py                # Python backend server
+├── requirements.py        # Requirements installer
+├── README.md             # Repository documentation
+├── README.html           # HTML documentation
+├── README.txt            # Text documentation
+│
+├── static/               # Static assets
+│   ├── css/             # Stylesheets
+│   ├── js/              # JavaScript files
+│   └── img/             # Images and icons
+│
+├── templates/           # HTML templates
+│   └── components/     # Reusable UI components
+│
+├── src/                # Source code
+│   ├── audio/         # Audio management
+│   ├── video/         # Video management
+│   ├── scenes/        # Scene management
+│   └── platforms/     # Platform-specific implementations
+│
+├── config/            # Configuration files
+│   └── settings.json  # Default settings
+│
+└── docs/             # Additional documentation
+    ├── API.md        # API documentation
+    └── SETUP.md      # Detailed setup instructions
